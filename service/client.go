@@ -4,14 +4,14 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
-	desk "github.com/talbright/go-desk"
 	"io"
 	"io/ioutil"
-	"log"
 	"net/http"
 	"net/url"
 	"strconv"
 	"time"
+
+	desk "github.com/talbright/go-desk"
 )
 
 type Client struct {
@@ -57,10 +57,6 @@ func (c *Client) NewRequest(method, urlStr string, body interface{}) (*http.Requ
 		if err != nil {
 			return nil, err
 		}
-		b, err := json.MarshalIndent(body, "", "  ")
-		if err == nil {
-			log.Printf("%s %s [request]\n%s", method, u.String(), b)
-		}
 	}
 
 	req, err := http.NewRequest(method, u.String(), buf)
@@ -80,8 +76,6 @@ func (c *Client) NewRequest(method, urlStr string, body interface{}) (*http.Requ
 // interface, the raw response body will be written to v, without attempting to
 // first decode it.
 func (c *Client) Do(req *http.Request, v interface{}) (*http.Response, error) {
-	log.Printf("Do %v", req)
-
 	var resp *http.Response
 	var err error
 
@@ -128,13 +122,7 @@ func (c *Client) Do(req *http.Request, v interface{}) (*http.Response, error) {
 		if w, ok := v.(io.Writer); ok {
 			io.Copy(w, resp.Body)
 		} else {
-			err = json.NewDecoder(resp.Body).Decode(v)
-			if err == nil {
-				b, indentErr := json.MarshalIndent(v, "", "  ")
-				if indentErr == nil {
-					log.Printf("%s %v [response]\n%s", req.Method, req.URL, b)
-				}
-			}
+			json.NewDecoder(resp.Body).Decode(v)
 		}
 	}
 	return resp, err
